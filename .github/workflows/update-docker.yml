@@ -10,10 +10,6 @@ on:
     secrets:
       PAT_TOKEN:
         required: true
-    
-
-permissions:
-  contents: write
 
 jobs:
   build-new-docker:
