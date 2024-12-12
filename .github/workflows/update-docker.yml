@@ -17,8 +17,8 @@ jobs:
     steps:
       - name: Validate inputs
         run: |
-          if [[ ${{ github.event.inputs.version }} =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
-            echo "Invalid version format. Expected format: x.y.z"
+          if [[ ! "${{ github.event.inputs.version }}" =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
+            echo "Invalid version format. Expected format: x.y.z or 'unstable'"
             exit 1
           fi
       
