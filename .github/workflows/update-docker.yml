@@ -51,9 +51,9 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           branch: update-${{ github.event.inputs.version }}
           commit-message: "Update to version ${{ github.event.inputs.version }}"
-          committer: github-actions[bot]
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           delete-branch: true
-          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           title: "Update to version ${{ github.event.inputs.version }}"
           body: |
             This pull request updates the repository to version `${{ github.event.inputs.version }}`.
