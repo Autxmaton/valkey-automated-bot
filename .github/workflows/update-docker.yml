@@ -30,38 +30,32 @@ jobs:
           bashbrew --version
 
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: Autxmaton/valkey-container
           token: ${{ secrets.PAT_TOKEN }}
       
-      - name: Configure Git
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-      
-      - name: Create new branch and update version
+      - name: Update new version
         run: |
           if [ -d "${{ github.event.inputs.version }}" ]; then
             echo "${{ github.event.inputs.version }} already exists."
             exit 1
           else
-            NEW_BRANCH="update-${{ github.event.inputs.version }}"
-            git checkout -b $NEW_BRANCH
             mkdir ${{ github.event.inputs.version }}
             ./update.sh
-            git add .
-            git commit -s -m "Update to ${{ github.event.inputs.version }}"
-            git push origin $NEW_BRANCH
           fi
 
-      # - name: Create Pull Request
-      #   uses: peter-evans/create-pull-request@v5
-      #   with:
-      #     token: ${{ secrets.PAT_TOKEN }}
-      #     branch: update-${{ github.event.inputs.version }}
-      #     base: mainline
-      #     title: "Update to version ${{ github.event.inputs.version }}"
-      #     body: |
-      #       This pull request updates the repository to version `${{ github.event.inputs.version }}`.
-      #       Please review the changes and merge when appropriate.
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          branch: update-${{ github.event.inputs.version }}
+          commit-message: "Update to version ${{ github.event.inputs.version }}"
+          committer: github-actions[bot]
+          delete-branch: true
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          title: "Update to version ${{ github.event.inputs.version }}"
+          body: |
+            This pull request updates the repository to version `${{ github.event.inputs.version }}`.
+            Please review the changes and merge when appropriate.
+          
