@@ -1,0 +1,19 @@
+name: Build Release new version
+
+on:
+  repository_dispatch:
+    types: [build-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: "Version of the package to build"
+        required: true
+
+jobs:
+  update-docker:
+    uses: ./.github/workflows/update-docker.yml
+    with:
+      version: ${{ github.event.client_payload.version }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
