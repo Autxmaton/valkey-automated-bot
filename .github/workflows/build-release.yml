@@ -14,6 +14,6 @@ jobs:
   update-docker:
     uses: ./.github/workflows/update-docker.yml
     with:
-      version: ${{ github.event.client_payload.version }}
+      version: ${{ github.event.client_payload.version }} || ${{ github.event.inputs.version }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
