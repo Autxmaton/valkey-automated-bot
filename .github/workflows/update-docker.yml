@@ -47,12 +47,13 @@ jobs:
 
           if [ -d "${{ github.event.inputs.version }}" ]; then
             echo "${{ github.event.inputs.version }} already exists."
+            exit 1
           else
             mkdir ${{ github.event.inputs.version }}
             ./update.sh
             git add .
             git commit -s -m "Update to ${{ github.event.inputs.version }}"
-            git push -u origin $NEW_BRANCH
+            git push origin $NEW_BRANCH
           fi
 
       - name: Create Pull Request
