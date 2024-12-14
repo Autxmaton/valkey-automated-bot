@@ -53,7 +53,12 @@ jobs:
 
       - name: Make Valkey
         run: make -C src all BUILD_TLS=yes USE_SYSTEMD=yes
-
+      
+      - name: Check Dir
+        run: |
+          ls
+          pwd
+      
       - name: Create Tarball and SHA256sums
         run: |
           TAR_FILE_NAME=valkey-${{inputs.version}}-${{matrix.distro.platform}}-${{ matrix.distro.arch}}
