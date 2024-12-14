@@ -43,6 +43,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          repository: Autxmaton/valkey
           ref: ${{ inputs.version }}
 
       - name: Configure AWS credentials

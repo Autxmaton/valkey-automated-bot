@@ -10,6 +10,10 @@ on:
         description: "Version of the package to build"
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   update-docker:
     uses: ./.github/workflows/update-docker.yml
@@ -17,3 +21,51 @@ jobs:
       version: ${{ github.event.client_payload.version }} || ${{ github.event.inputs.version }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  
+  update-valkey-hashes:
+    uses: ./.github/workflows/update-valkey-hashes.yml
+    with:
+      version: ${{ github.event.client_payload.version }} || ${{ github.event.inputs.version }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+
+  generate-build-matrix:
+    name: Generating build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      x86_64-build-matrix: ${{ steps.set-matrix.outputs.x86_64-build-matrix }}
+      arm64-build-matrix: ${{ steps.set-matrix.outputs.arm64-build-matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Set up the list of target to build so we can pass the JSON to the reusable job
+      - uses: ./.github/actions/generate-package-build-matrix
+        id: set-matrix
+        with:
+          ref: ${{ github.event.client_payload.version }} || ${{ github.event.inputs.version }}
+
+  release-build-linux-x86-packages:
+    needs:
+      - generate-build-matrix
+    uses: ./.github/workflows/call-build-linux-x86-packages.yml
+    with:
+      version: ${{ github.event.client_payload.version }} || ${{ github.event.inputs.version }}
+      ref: ${{ inputs.version || github.ref_name }}
+      build_matrix: ${{ needs.generate-build-matrix.outputs.x86_64-build-matrix }}
+      region: us-west-2
+    secrets:
+      bucket_name: ${{ secrets.AWS_S3_BUCKET }}
+      role_to_assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+  release-build-linux-arm-packages:
+    needs:
+      - generate-build-matrix
+    uses: ./.github/workflows/call-build-linux-arm-packages.yml
+    with:
+      version: ${{ github.event.client_payload.version }} || ${{ github.event.inputs.version }}
+      ref: ${{ inputs.version || github.ref_name }}
+      build_matrix: ${{ needs.generate-build-matrix.outputs.arm64-build-matrix }}
+      region: us-west-2
+    secrets:
+      bucket_name: ${{ secrets.AWS_S3_BUCKET }}
+      role_to_assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}

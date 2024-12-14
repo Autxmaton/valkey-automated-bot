@@ -1,0 +1,37 @@
+name: Commit new hash into valkey-hashes
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: The version of Valkey to create.
+        type: string
+        required: true
+    secrets:
+      PAT_TOKEN:
+        description: PAT token for valkey-hashes repo.
+        required: true
+
+jobs:
+  commit-hash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Autxmaton/valkey-hashes
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Trigger commit
+        run: |
+          VERSION=${{ inputs.version }}
+          URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
+          FILENAME="valkey-${VERSION}.tar.gz"
+          wget -O $FILENAME $URL
+          HASH=$(sha256sum $FILENAME | cut -d ' ' -f 1)
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          echo "" >> README
+          echo "hash $FILENAME sha256 $HASH $URL" >> README
+          git add README
+          git commit -s -m "Add hash for ${VERSION}."
+          git push
