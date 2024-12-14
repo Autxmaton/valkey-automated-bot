@@ -50,7 +50,6 @@ jobs:
     uses: ./.github/workflows/call-build-linux-x86-packages.yml
     with:
       version: ${{ github.event.client_payload.version || github.event.inputs.version }}
-      ref: ${{ inputs.version || github.ref_name }}
       build_matrix: ${{ needs.generate-build-matrix.outputs.x86_64-build-matrix }}
       region: us-west-2
     secrets:
@@ -63,7 +62,6 @@ jobs:
     uses: ./.github/workflows/call-build-linux-arm-packages.yml
     with:
       version: ${{ github.event.client_payload.version || github.event.inputs.version }}
-      ref: ${{ inputs.version || github.ref_name }}
       build_matrix: ${{ needs.generate-build-matrix.outputs.arm64-build-matrix }}
       region: us-west-2
     secrets:

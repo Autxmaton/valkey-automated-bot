@@ -7,10 +7,6 @@ on:
         description: The version of Valkey to create.
         type: string
         required: true
-      ref:
-        description: The commit, tag or branch of Valkey to checkout for building that creates the version above.
-        type: string
-        required: true
       build_matrix:
         description: The build targets to produce as a JSON matrix.
         type: string
