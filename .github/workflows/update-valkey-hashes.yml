@@ -22,23 +22,31 @@ jobs:
             echo "Invalid version format. Expected format: x.y.z or 'unstable'"
             exit 1
           fi
-          
+
       - uses: actions/checkout@v4
         with:
           repository: Autxmaton/valkey-hashes
           token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Trigger commit
+      - name: Update hash
         run: |
           VERSION=${{ github.event.inputs.version }}
           URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
           FILENAME="valkey-${VERSION}.tar.gz"
           wget -O $FILENAME $URL
           HASH=$(sha256sum $FILENAME | cut -d ' ' -f 1)
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          echo "" >> README
           echo "hash $FILENAME sha256 $HASH $URL" >> README
-          git add README
-          git commit -s -m "Add hash for ${VERSION}."
-          git push
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          branch: update-${{ github.event.inputs.version }}-hash
+          commit-message: "Update hashes for ${{ github.event.inputs.version }}"
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          delete-branch: true
+          title: "Update to version ${{ github.event.inputs.version }}"
+          body: |
+            This pull request updates the repository hashes to version `${{ github.event.inputs.version }}`.
+            Please review the changes and merge when appropriate.
+
