@@ -36,6 +36,7 @@ jobs:
           wget -O $FILENAME $URL
           HASH=$(sha256sum $FILENAME | cut -d ' ' -f 1)
           echo "hash $FILENAME sha256 $HASH $URL" >> README
+          rm $FILENAME
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
