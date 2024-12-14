@@ -18,10 +18,6 @@ runs:
   steps:
     - name: Checkout code for version check
       uses: actions/checkout@v4
-      with:
-        repository: Autxmaton/valkey
-        ref: ${{ inputs.ref }}
-        path: version-check
 
     - name: Get targets
       run: |
