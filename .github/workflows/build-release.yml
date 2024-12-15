@@ -19,78 +19,66 @@ permissions:
   contents: read
 
 jobs:
-  process-payload:
+  process-inputs:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.process-payload.outputs.version }}
-      environment: ${{ steps.process-payload.outputs.environment }}
+      version: ${{ steps.process-inputs.outputs.version }}
+      environment: ${{ steps.process-inputs.outputs.environment }}
     steps:
-      - name: Process payload
-        id: process-payload
+      - name: Process and validate inputs
+        id: process-inputs
         run: |
+          # Determine the event type
           if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
-            echo "Triggered by repository_dispatch event."
-            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
-            echo "environment=${{ github.event.client_payload.environment }}" >> $GITHUB_OUTPUT
+            VERSION=${{ github.event.client_payload.version }}
+            ENVIRONMENT=${{ github.event.client_payload.environment }}
           else
-            echo "Triggered by workflow_dispatch event."
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+            VERSION=${{ github.event.inputs.version }}
+            ENVIRONMENT=${{ github.event.inputs.environment }}
           fi
 
-  verify-version:
-    needs:
-      - process-payload
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate version inputs
-        run: |
-          if [[ ! "${{ needs.process-payload.outputs.version }}" =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
-            echo "Invalid version format. Expected format: x.y.z or 'unstable'"
+          # Validate version
+          if [[ ! "$VERSION" =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
+            echo "Invalid version format. Expected format: x.y.z or 'unstable'."
             exit 1
           fi
 
-  check-environment:
-    needs:
-      - process-payload
-    name: Check environment
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.check-env.outputs.environment }}
-    steps:
-      - name: Determine environment
-        id: check-env
-        run: |
-          ENVIRONMENT=${{ needs.process-payload.outputs.environment }}
-          if [[ "$ENVIRONMENT" == "dev" ]]; then
-            echo "Environment is dev"
-            echo "environment=dev" >> $GITHUB_OUTPUT
-          else
-            echo "Environment is prod"
-            echo "environment=prod" >> $GITHUB_OUTPUT
+          # Default environment to 'prod' if not provided
+          if [[ -z "$ENVIRONMENT" ]]; then
+            ENVIRONMENT="prod"
           fi
+
+          # Validate environment
+          if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "prod" ]]; then
+            echo "Invalid environment. Allowed values: 'dev', 'prod'."
+            exit 1
+          fi
+
+          # Output validated variables
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
 
   update-docker:
     needs:
-      - process-payload
+      - process-inputs
     uses: ./.github/workflows/update-docker.yml
     with:
-      version: ${{ needs.process-payload.outputs.version }}
+      version: ${{ needs.process-inputs.outputs.version }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   
   update-valkey-hashes:
     needs:
-      - process-payload
+      - process-inputs
     uses: ./.github/workflows/update-valkey-hashes.yml
     with:
-      version: ${{ needs.process-payload.outputs.version }}
+      version: ${{ needs.process-inputs.outputs.version }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
   generate-build-matrix:
     needs:
-      - process-payload
+      - process-inputs
     name: Generating build matrix
     runs-on: ubuntu-latest
     outputs:
@@ -103,32 +91,30 @@ jobs:
       - uses: ./.github/actions/generate-package-build-matrix
         id: set-matrix
         with:
-          ref: ${{ needs.process-payload.outputs.version }}
+          ref: ${{ needs.process-inputs.outputs.version }}
   
   release-build-linux-x86-packages:
     needs:
       - generate-build-matrix
-      - check-environment
-      - process-payload
+      - process-inputs
     uses: ./.github/workflows/call-build-linux-x86-packages.yml
     with:
-      version: ${{ needs.process-payload.outputs.version }}
+      version: ${{ needs.process-inputs.outputs.version }}
       build_matrix: ${{ needs.generate-build-matrix.outputs.x86_64-build-matrix }}
       region: us-west-2
     secrets:
-      bucket_name: ${{ needs.check-environment.outputs.environment == 'dev' && secrets.AWS_TEST_BUCKET || secrets.AWS_S3_BUCKET }}
+      bucket_name: ${{ needs.process-inputs.outputs.environment == 'dev' && secrets.AWS_TEST_BUCKET || secrets.AWS_S3_BUCKET }}
       role_to_assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
   # release-build-linux-arm-packages:
   #   needs:
   #     - generate-build-matrix
-  #     - check-environment
-  #     - process-payload
+  #     - process-inputs
   #   uses: ./.github/workflows/call-build-linux-arm-packages.yml
   #   with:
-  #     version: ${{ needs.process-payload.outputs.version }}
+  #     version: ${{ needs.process-inputs.outputs.version }}
   #     build_matrix: ${{ needs.generate-build-matrix.outputs.arm64-build-matrix }}
   #     region: us-west-2
   #   secrets:
-  #     bucket_name: ${{ needs.check-environment.outputs.environment == 'dev' && secrets.AWS_TEST_BUCKET || secrets.AWS_S3_BUCKET }}
+  #     bucket_name: ${{ needs.process-inputs.outputs.environment == 'dev' && secrets.AWS_TEST_BUCKET || secrets.AWS_S3_BUCKET }}
   #     role_to_assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
