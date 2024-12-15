@@ -55,8 +55,7 @@ jobs:
       - name: Update new version
         run: |
           if [ -d "${{ steps.strip_version.outputs.stripped_version }}" ]; then
-            echo "${{ steps.strip_version.outputs.stripped_version }} already exists."
-            exit 1
+            ./update.sh ${{ inputs.branch }}
           else
             mkdir ${{ steps.strip_version.outputs.stripped_version }}
             ./update.sh ${{ inputs.branch }}
