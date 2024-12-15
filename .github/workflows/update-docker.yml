@@ -7,6 +7,10 @@ on:
         type: string
         description: "Version of the package to build"
         required: true
+      branch:
+        type: string
+        description: "Branch to build"
+        required: true
     secrets:
       PAT_TOKEN:
         required: true
@@ -55,7 +59,7 @@ jobs:
             exit 1
           else
             mkdir ${{ steps.strip_version.outputs.stripped_version }}
-            ./update.sh
+            ./update.sh ${{ inputs.branch }}
           fi
 
       - name: Create Pull Request

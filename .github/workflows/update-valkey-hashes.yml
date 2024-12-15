@@ -34,12 +34,21 @@ jobs:
           URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
           FILENAME="valkey-${VERSION}.tar.gz"
           wget -O $FILENAME $URL
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
           HASH=$(sha256sum $FILENAME | cut -d ' ' -f 1)
           echo "hash $FILENAME sha256 $HASH $URL" >> README
           rm $FILENAME
-          git add .
-          git commit -s -m "Add hash for ${VERSION}."
-          git push
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          branch: update-${{ inputs.version }}
+          commit-message: "Update to version ${{ inputs.version }}"
+          committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+          delete-branch: true
+          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+          title: "Update to version ${{ inputs.version }}"
+          body: |
+            This pull request updates the repository hash to version `${{ inputs.version }}`.
+            Please review the changes and merge when appropriate.
 
