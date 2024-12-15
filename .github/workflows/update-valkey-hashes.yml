@@ -43,4 +43,3 @@ jobs:
           git commit -s -m "Add hash for ${VERSION}."
           git push
 
-

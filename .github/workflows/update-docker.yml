@@ -41,7 +41,7 @@ jobs:
           if [[ "${{ inputs.version }}" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
             stripped_version="${BASH_REMATCH[1]}"
             echo "Stripped version: $stripped_version"
-            echo "stripped_version=$stripped_version" >> $GITHUB_ENV
+            echo "stripped_version=$stripped_version" >> $GITHUB_OUTPUT
           else
             echo "Version doesn't match expected format"
             exit 1
