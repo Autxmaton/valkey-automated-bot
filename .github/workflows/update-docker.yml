@@ -35,13 +35,25 @@ jobs:
           repository: Autxmaton/valkey-container
           token: ${{ secrets.PAT_TOKEN }}
       
+      - name: Strip patch version
+        id: strip_version
+        run: |
+          if [[ "${{ inputs.version }}" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+            stripped_version="${BASH_REMATCH[1]}"
+            echo "Stripped version: $stripped_version"
+            echo "::set-output name=stripped_version::$stripped_version"
+          else
+            echo "Version doesn't match expected format"
+            exit 1
+        shell: bash
+      
       - name: Update new version
         run: |
-          if [ -d "${{ inputs.version }}" ]; then
-            echo "${{ inputs.version }} already exists."
+          if [ -d "${{ steps.strip_version.outputs.stripped_version }}" ]; then
+            echo "${{ steps.strip_version.outputs.stripped_version }} already exists."
             exit 1
           else
-            mkdir ${{ inputs.version }}
+            mkdir ${{ steps.strip_version.outputs.stripped_version }}
             ./update.sh
           fi
 
