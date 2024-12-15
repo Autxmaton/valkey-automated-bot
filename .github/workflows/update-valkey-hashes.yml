@@ -39,6 +39,7 @@ jobs:
           HASH=$(sha256sum $FILENAME | cut -d ' ' -f 1)
           echo "hash $FILENAME sha256 $HASH $URL" >> README
           rm $FILENAME
+          git add .
           git commit -s -m "Add hash for ${VERSION}."
           git push
 
