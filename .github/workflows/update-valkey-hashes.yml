@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Validate inputs
         run: |
-          if [[ ! "${{ github.event.inputs.version }}" =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
+          if [[ ! "${{ inputs.version }}" =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
             echo "Invalid version format. Expected format: x.y.z or 'unstable'"
             exit 1
           fi
@@ -30,7 +30,7 @@ jobs:
 
       - name: Update hash
         run: |
-          VERSION=${{ github.event.inputs.version }}
+          VERSION=${{ inputs.version }}
           URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
           FILENAME="valkey-${VERSION}.tar.gz"
           wget -O $FILENAME $URL
@@ -42,12 +42,12 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          branch: update-${{ github.event.inputs.version }}-hash
-          commit-message: "Update hashes for ${{ github.event.inputs.version }}"
+          branch: update-${{ inputs.version }}-hash
+          commit-message: "Update hashes for ${{ inputs.version }}"
           committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           delete-branch: true
-          title: "Update to version ${{ github.event.inputs.version }}"
+          title: "Update to version ${{ inputs.version }}"
           body: |
-            This pull request updates the repository hashes to version `${{ github.event.inputs.version }}`.
+            This pull request updates the repository hashes to version `${{ inputs.version }}`.
             Please review the changes and merge when appropriate.
 
