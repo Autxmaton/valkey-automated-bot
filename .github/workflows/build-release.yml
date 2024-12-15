@@ -58,15 +58,6 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
 
-  update-docker:
-    needs:
-      - process-inputs
-    uses: ./.github/workflows/update-docker.yml
-    with:
-      version: ${{ needs.process-inputs.outputs.version }}
-    secrets:
-      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-  
   update-valkey-hashes:
     needs:
       - process-inputs
@@ -76,6 +67,16 @@ jobs:
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
+  update-docker:
+    needs:
+      - process-inputs
+      - update-valkey-hashes
+    uses: ./.github/workflows/update-docker.yml
+    with:
+      version: ${{ needs.process-inputs.outputs.version }}
+    secrets:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  
   generate-build-matrix:
     needs:
       - process-inputs
