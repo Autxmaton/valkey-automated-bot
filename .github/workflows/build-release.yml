@@ -19,21 +19,78 @@ permissions:
   contents: read
 
 jobs:
+  process-payload:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.process-payload.outputs.version }}
+      environment: ${{ steps.process-payload.outputs.environment }}
+    steps:
+      - name: Process payload
+        id: process-payload
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "Triggered by repository_dispatch event."
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            echo "environment=${{ github.event.client_payload.environment }}" >> $GITHUB_OUTPUT
+          else
+            echo "Triggered by workflow_dispatch event."
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+  verify-version:
+    needs:
+      - process-payload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate version inputs
+        run: |
+          if [[ ! "${{ needs.process-payload.outputs.version }}" =~ ^([0-9]+\.[0-9]+\.[0-9]+|unstable)$ ]]; then
+            echo "Invalid version format. Expected format: x.y.z or 'unstable'"
+            exit 1
+          fi
+
+  check-environment:
+    needs:
+      - process-payload
+    name: Check environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.check-env.outputs.environment }}
+    steps:
+      - name: Determine environment
+        id: check-env
+        run: |
+          ENVIRONMENT=${{ needs.process-payload.outputs.environment }}
+          if [[ "$ENVIRONMENT" == "dev" ]]; then
+            echo "Environment is dev"
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          else
+            echo "Environment is prod"
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          fi
+
   update-docker:
+    needs:
+      - process-payload
     uses: ./.github/workflows/update-docker.yml
     with:
-      version: ${{ github.event.client_payload.version || github.event.inputs.version }}
+      version: ${{ needs.process-payload.outputs.version }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
   
   update-valkey-hashes:
+    needs:
+      - process-payload
     uses: ./.github/workflows/update-valkey-hashes.yml
     with:
-      version: ${{ github.event.client_payload.version || github.event.inputs.version }}
+      version: ${{ needs.process-payload.outputs.version }}
     secrets:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
 
   generate-build-matrix:
+    needs:
+      - process-payload
     name: Generating build matrix
     runs-on: ubuntu-latest
     outputs:
@@ -46,33 +103,16 @@ jobs:
       - uses: ./.github/actions/generate-package-build-matrix
         id: set-matrix
         with:
-          ref: ${{ github.event.client_payload.version || github.event.inputs.version }}
+          ref: ${{ needs.process-payload.outputs.version }}
   
-  check-environment:
-    name: Check environment
-    runs-on: ubuntu-latest
-    outputs:
-      environment: ${{ steps.check-env.outputs.environment }}
-    steps:
-      - name: Determine environment
-        id: check-env
-        run: |
-          ENVIRONMENT=${{ github.event.client_payload.environment || github.event.inputs.environment }}
-          if [[ "$ENVIRONMENT" == "dev" ]]; then
-            echo "Environment is dev"
-            echo "environment=dev" >> $GITHUB_OUTPUT
-          else
-            echo "Environment is prod"
-            echo "environment=prod" >> $GITHUB_OUTPUT
-          fi
-
   release-build-linux-x86-packages:
     needs:
       - generate-build-matrix
       - check-environment
+      - process-payload
     uses: ./.github/workflows/call-build-linux-x86-packages.yml
     with:
-      version: ${{ github.event.client_payload.version || github.event.inputs.version }}
+      version: ${{ needs.process-payload.outputs.version }}
       build_matrix: ${{ needs.generate-build-matrix.outputs.x86_64-build-matrix }}
       region: us-west-2
     secrets:
@@ -82,9 +122,11 @@ jobs:
   # release-build-linux-arm-packages:
   #   needs:
   #     - generate-build-matrix
+  #     - check-environment
+  #     - process-payload
   #   uses: ./.github/workflows/call-build-linux-arm-packages.yml
   #   with:
-  #     version: ${{ github.event.client_payload.version || github.event.inputs.version }}
+  #     version: ${{ needs.process-payload.outputs.version }}
   #     build_matrix: ${{ needs.generate-build-matrix.outputs.arm64-build-matrix }}
   #     region: us-west-2
   #   secrets:
