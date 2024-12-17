@@ -23,28 +23,28 @@ jobs:
             exit 1
           fi
 
-          - name: Update hash
-          run: |
-            set -e
-            VERSION=${{ inputs.version }}
-            URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
-            FILENAME="valkey-${VERSION}.tar.gz"
-            
-            # Download the tar.gz file
-            wget -O "$FILENAME" "$URL" || { echo "Failed to download $URL"; exit 1; }
-            
-            # Calculate SHA256 hash
-            HASH=$(sha256sum "$FILENAME" | cut -d ' ' -f 1)
-            
-            # Add hash to README if not already present
-            if ! grep -q "$HASH $URL" README; then
-              echo "hash $FILENAME sha256 $HASH $URL" >> README
-            else
-              echo "Hash entry already exists in README. Skipping append."
-            fi
-            
-            # Clean up the downloaded file
-            rm "$FILENAME"
+      - name: Update hash
+        run: |
+          set -e
+          VERSION=${{ inputs.version }}
+          URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
+          FILENAME="valkey-${VERSION}.tar.gz"
+          
+          # Download the tar.gz file
+          wget -O "$FILENAME" "$URL" || { echo "Failed to download $URL"; exit 1; }
+          
+          # Calculate SHA256 hash
+          HASH=$(sha256sum "$FILENAME" | cut -d ' ' -f 1)
+          
+          # Add hash to README if not already present
+          if ! grep -q "$HASH $URL" README; then
+            echo "hash $FILENAME sha256 $HASH $URL" >> README
+          else
+            echo "Hash entry already exists in README. Skipping append."
+          fi
+          
+          # Clean up the downloaded file
+          rm "$FILENAME"
   
       - name: Commit and push changes
         run: |
