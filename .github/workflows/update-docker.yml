@@ -10,7 +10,7 @@ on:
       branch:
         type: string
         description: "Branch to build"
-        required: true
+        required: false
     secrets:
       PAT_TOKEN:
         required: true
