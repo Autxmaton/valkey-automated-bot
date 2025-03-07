@@ -42,7 +42,10 @@ jobs:
       - name: Strip patch version
         id: strip_version
         run: |
-          if [[ "${{ inputs.version }}" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+          if [[ "${{ inputs.version }}" == "unstable" ]]; then
+            echo "Version is unstable"
+            echo "stripped_version=unstable" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.version }}" =~ ^([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
             stripped_version="${BASH_REMATCH[1]}"
             echo "Stripped version: $stripped_version"
             echo "stripped_version=$stripped_version" >> $GITHUB_OUTPUT
