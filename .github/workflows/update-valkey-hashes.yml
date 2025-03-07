@@ -55,7 +55,7 @@ jobs:
           # Add hash to README if not already present
           if grep -q "unstable" README; then
             # Replace existing line with new hash
-            sed -i "/.*$VERSION.*unstable/c\hash $FILENAME sha256 $HASH $URL # unstable" README
+            sed -i "/.*unstable/c\hash $FILENAME sha256 $HASH $URL # unstable" README
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add README
