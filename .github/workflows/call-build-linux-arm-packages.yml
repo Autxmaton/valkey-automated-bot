@@ -49,12 +49,7 @@ jobs:
           role-to-assume: ${{ secrets.role_to_assume }}
 
       - name: Make Valkey
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: aarch64
-          distro: ${{matrix.distro.target}}
-          install: apt-get update && apt-get install -y build-essential libssl-dev libsystemd-dev
-          run: make -C src all BUILD_TLS=yes USE_SYSTEMD=yes
+        run: make -C src all BUILD_TLS=yes USE_SYSTEMD=yes
 
       - name: Create Tarball and SHA256sums
         run: |
