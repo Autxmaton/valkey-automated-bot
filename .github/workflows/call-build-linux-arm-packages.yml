@@ -31,7 +31,7 @@ jobs:
   build-valkey:
     # Capture source tarball and generate checksum for it
     name: Build package ${{ matrix.distro.target }} ${{ matrix.distro.arch }}
-    runs-on: "ubuntu-latest"
+    runs-on: ${{ matrix.distro.target }}
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(inputs.build_matrix) }}
@@ -47,6 +47,9 @@ jobs:
         with:
           aws-region: ${{ inputs.region }}
           role-to-assume: ${{ secrets.role_to_assume }}
+      
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev libsystemd-dev
 
       - name: Make Valkey
         run: make -C src all BUILD_TLS=yes USE_SYSTEMD=yes
