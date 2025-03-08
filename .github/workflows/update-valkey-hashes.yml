@@ -59,7 +59,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add README
-            git commit -m "Update hash for unstable version ${{ inputs.version }}"
+            git commit -m "Update hash for version ${{ inputs.version }}"
             git push origin HEAD
           elif ! grep -q "$HASH $URL" README; then
             echo "hash $FILENAME sha256 $HASH $URL" >> README
