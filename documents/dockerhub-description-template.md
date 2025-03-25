@@ -1,5 +1,5 @@
-# THIS FILE IS AUTO-GENERATED - DO NOT EDIT MANUALLY
-# Last updated: {update_date}
+## THIS FILE IS AUTO-GENERATED - DO NOT EDIT MANUALLY
+Last updated: {update_date}
 
 # Quick reference
 
