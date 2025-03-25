@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: Autxmaton/valkey-hashes
+          repository: ${{ github.repository_owner }}/valkey-hashes
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Ensure repository is initialized
@@ -43,7 +43,7 @@ jobs:
         run: |
           set -e
           VERSION=${{ inputs.version }}
-          URL="https://github.com/Autxmaton/valkey/archive/refs/tags/${VERSION}.tar.gz"
+          URL="https://github.com/${{ github.repository_owner }}/valkey/archive/refs/tags/${VERSION}.tar.gz"
           FILENAME="valkey-${VERSION}.tar.gz"
           
           # Download the tar.gz file
