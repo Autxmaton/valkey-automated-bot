@@ -64,12 +64,7 @@ jobs:
           wget -qO "$jqt" 'https://github.com/docker-library/bashbrew/raw/9f6a35772ac863a0241f147c820354e4008edf38/scripts/jq-template.awk'
           jqf='.template-helper-functions.jq'
           wget -qO "$jqf" 'https://github.com/docker-library/bashbrew/raw/08c926140ad0af22de58c2a2656afda58082ba3e/scripts/template-helper-functions.jq'
-          if [ -d "${{ steps.strip_version.outputs.stripped_version }}" ]; then
-            ./update.sh ${{ inputs.branch }}
-          else
-            mkdir ${{ steps.strip_version.outputs.stripped_version }}
-            ./update.sh ${{ inputs.branch }}
-          fi
+          ./update.sh ${{ steps.strip_version.outputs.stripped_version }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
