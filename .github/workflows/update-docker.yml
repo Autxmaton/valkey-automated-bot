@@ -90,10 +90,11 @@ jobs:
           "$BASHBREW_SCRIPTS/github-actions/generate.sh" > bashbrew_output.json
           cat bashbrew_output.json
 
+
       - name: Update Docker Description File
         run: |
           python valkey-automated-bot/scripts/automate_docker_description.py valkey-container/bashbrew_output.json valkey-automated-bot/documents/dockerhub-description-template.md valkey-container/dockerhub-description.md
-          rm valkey-container/bashbrew_output.json
+          git reset HEAD~1
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
