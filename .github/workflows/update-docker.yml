@@ -65,6 +65,8 @@ jobs:
           jqf='.template-helper-functions.jq'
           wget -qO "$jqf" 'https://github.com/docker-library/bashbrew/raw/08c926140ad0af22de58c2a2656afda58082ba3e/scripts/template-helper-functions.jq'
           ./update.sh ${{ steps.strip_version.outputs.stripped_version }}
+          git add .
+          git commit -m "Update to version ${{ inputs.version }}"
 
       - name: Set up Python
         uses: actions/setup-python@v4
