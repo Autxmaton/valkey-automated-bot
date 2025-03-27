@@ -15,12 +15,12 @@ def format_tag_line(entry: dict) -> str:
         meta_entries = entry.get("meta", {}).get("entries", [])
         if not meta_entries:
             raise KeyError("Missing or empty 'entries' list in 'meta'.")
-
+        
         first_entry = meta_entries[0]
         raw_tags = first_entry.get("tags", [])
         if not raw_tags:
             raise KeyError("Missing or empty 'tags' list in entry.")
-
+        
         directory = first_entry.get("directory", None)
         if not directory:
             raise KeyError("Missing 'directory' field in entry.")
@@ -29,11 +29,11 @@ def format_tag_line(entry: dict) -> str:
         tags = ", ".join(formatted_tags)
 
         return f"- [{tags}](https://github.com/valkey-io/valkey-container/blob/master/{directory}/Dockerfile)"
-
+    
     except KeyError as e:
         logging.error(f"JSON structure error: {e}")
         raise
-
+    
     except Exception as e:
         logging.error(f"Unexpected error in format_tag_line: {e}")
         raise
@@ -42,20 +42,10 @@ def update_docker_description(json_file: str, template_file: str, output_file: s
     try:
         with open(json_file, 'r') as f:
             data = json.load(f)
-
+        
         with open(template_file, 'r') as f:
             template = f.read()
-    except FileNotFoundError as e:
-        logging.error(f"File not found: {e}")
-        sys.exit(1)
-    except json.JSONDecodeError:
-        logging.error(f"Failed to parse JSON file '{json_file}'. Please check its syntax.")
-        sys.exit(1)
-    except Exception as e:
-        logging.error(f"Error reading input files: {e}")
-        sys.exit(1)
 
-    try:
         official_releases = []
         release_candidates = []
         latest_unstable = []
@@ -69,16 +59,26 @@ def update_docker_description(json_file: str, template_file: str, output_file: s
             else:
                 official_releases.append(line)
 
+        official_releases_section = "\n".join(official_releases)
+        rc_section = "" if not release_candidates else f"\n## Release candidates\n{'\n'.join(release_candidates)}"
+        unstable_section = "" if not latest_unstable else f"\n## Latest unstable\n{'\n'.join(latest_unstable)}"
+
         content = template.format(
             update_date=datetime.now().strftime("%Y-%m-%d"),
-            official_releases="\n".join(official_releases),
-            release_candidates="\n".join(release_candidates),
-            latest_unstable="\n".join(latest_unstable)
+            official_releases=official_releases_section,
+            release_candidates_section=rc_section,
+            unstable_section=unstable_section
         )
 
         with open(output_file, 'w') as f:
             f.write(content)
 
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {e}")
+        sys.exit(1)
+    except json.JSONDecodeError:
+        logging.error(f"Failed to parse JSON file '{json_file}'. Please check its syntax.")
+        sys.exit(1)
     except KeyError as e:
         logging.error(f"Invalid JSON structure: {e}")
         sys.exit(1)
