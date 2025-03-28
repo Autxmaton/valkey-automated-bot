@@ -93,7 +93,9 @@ jobs:
 
       - name: Update Docker Description File
         run: |
+          cat valkey-container/bashbrew_output.json
           python valkey-automated-bot/scripts/automate_docker_description.py valkey-container/bashbrew_output.json valkey-container/dockerhub-description-template.md valkey-container/dockerhub-description.md
+          cat valkey-container/bashbrew_output.json
           rm valkey-container/bashbrew_output.json
           cd valkey-container
           git reset HEAD~1
