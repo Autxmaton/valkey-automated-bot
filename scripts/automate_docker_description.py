@@ -60,8 +60,13 @@ def update_docker_description(json_file: str, template_file: str, output_file: s
                 official_releases.append(line)
 
         official_releases_section = "\n".join(official_releases)
-        rc_section = "" if not release_candidates else f"\n## Release candidates\n{'\n'.join(release_candidates)}"
-        unstable_section = "" if not latest_unstable else f"\n## Latest unstable\n{'\n'.join(latest_unstable)}"
+        rc_section = ""
+        if release_candidates:
+            rc_section = "\n## Release candidates\n" + "\n".join(release_candidates)
+            
+        unstable_section = ""
+        if latest_unstable:
+            unstable_section = "\n## Latest unstable\n" + "\n".join(latest_unstable)
 
         content = template.format(
             update_date=datetime.now().strftime("%Y-%m-%d"),
